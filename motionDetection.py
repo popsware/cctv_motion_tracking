@@ -129,7 +129,7 @@ while 1:
     diff = cv2.absdiff(gray1_cropped, gray2_cropped)
 
     th, thresh = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
-    thresh = cv2.dilate(thresh, None, iterations=2)
+    thresh = cv2.dilate(thresh, None, iterations=6)
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
