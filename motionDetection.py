@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import imutils
+from win10toast import ToastNotifier
 
 drawing = True
 
@@ -15,7 +16,11 @@ fontScale = 1
 color = (255, 0, 0)
 thickness = 2
 values = []
-showmotionplot = False
+
+showmotionplot = True
+showselectionwindow = False
+showmotionframe = False
+showlivefeed = True
 
 """
 # Nole 1
@@ -61,6 +66,7 @@ channel = '1102'
 
 streamUrl = 'rtsp://' + username + ':' + password + \
     '@' + ip_address + ':554/Streaming/channels/' + channel
+toast = ToastNotifier()
 
 
 # mouse callback function
@@ -100,18 +106,16 @@ print("camera frame: ", width, height)
 if vc.isOpened():  # try to get the first frame
     print("starting loop")
     cv2.waitKey(100)
-    rval1, selectionFrame = vc.read()
-    cv2.imshow("selectionFrame", selectionFrame)
-    cv2.setMouseCallback('selectionFrame', handleMouse)
 
-    rval1, frame1 = vc.read()
-    rval2, frame2 = vc.read()
-else:
-    rval1 = False
-    rval1 = False
+    if showselectionwindow:
+        rval1, selectionFrame = vc.read()
+        cv2.imshow("selectionFrame", selectionFrame)
+        cv2.setMouseCallback('selectionFrame', handleMouse)
 
 
 while 1:
+    rval1, frame1 = vc.read()
+    rval2, frame2 = vc.read()
 
     if (not rval1) or (not rval2):
         print("skipping this loop")
@@ -129,34 +133,38 @@ while 1:
     diff = cv2.absdiff(gray1_cropped, gray2_cropped)
 
     th, thresh = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
-    thresh = cv2.dilate(thresh, None, iterations=6)
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-
+    if not thresh is None:
+        thresh = cv2.dilate(thresh, None, iterations=6)
     number = cv2.countNonZero(thresh)
-    cv2.imshow("motion", thresh)
+
+    if showmotionframe:
+        cv2.imshow("motionframe", thresh)
 
     if showmotionplot:
         values.append(number)
-        if len(values) > 40:
+        if len(values) > 400:
             values.pop(0)
             plt.clf()
         plt.plot(values)
         plt.pause(0.5)
 
-    # loop over the contours
-    for c in cnts:
-        (x, y, w, h) = cv2.boundingRect(c)
-        cv2.rectangle(frame1, (ix+x, iy+y),
-                      (ix+x + w, iy+y + h), (0, 255, 0), 2)
+    if showlivefeed:
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+                                cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
 
-    cv2.rectangle(frame1, (ix, iy), (ix2, iy2), (0, 255, 0), 2)
-    cv2.circle(frame1, (ix, iy), 5, color, -1)
-    cv2.circle(frame1, (ix2, iy2), 5, color, -1)
-    cv2.putText(frame1, str(number), (ix, iy), font,
-                fontScale, color, thickness, cv2.LINE_AA)
-    cv2.imshow("frame1", frame1)
+        # loop over the contours
+        for c in cnts:
+            (x, y, w, h) = cv2.boundingRect(c)
+            cv2.rectangle(frame1, (ix+x, iy+y),
+                          (ix+x + w, iy+y + h), (0, 255, 0), 2)
+
+        cv2.rectangle(frame1, (ix, iy), (ix2, iy2), (0, 255, 0), 2)
+        cv2.circle(frame1, (ix, iy), 5, color, -1)
+        cv2.circle(frame1, (ix2, iy2), 5, color, -1)
+        cv2.putText(frame1, str(number), (ix, iy), font,
+                    fontScale, color, thickness, cv2.LINE_AA)
+        cv2.imshow("frame1", frame1)
 
     # print("waiting...")
     key = cv2.waitKey(20)
@@ -169,3 +177,6 @@ while 1:
 
 # cv2.destroyWindow("selection")
 cv2.destroyAllWindows()
+
+toast.show_toast("WOW!!", "script completed",
+                 duration=3, icon_path="python_icon.ico")
