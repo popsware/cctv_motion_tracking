@@ -5,9 +5,9 @@ import numpy as np
 # create data
 
 
-plt.title('timtle nae')
-plt.xlabel('xAxis name')
-plt.ylabel('yAxis name')
+plt.title('Title')
+plt.xlabel('Time')
+plt.ylabel('Motion')
 
 
 #y = np.random.random([10, 1])

@@ -5,8 +5,6 @@ import numpy as np
 import imutils
 from win10toast import ToastNotifier
 
-drawing = True
-
 ip_address = "192.168.1.20"
 username = "admin"
 password = "ayman1351359"
@@ -15,55 +13,16 @@ org = (50, 50)
 fontScale = 1
 color = (255, 0, 0)
 thickness = 2
-values = []
-
 showmotionplot = True
 showselectionwindow = False
 showmotionframe = False
 showlivefeed = True
 
-"""
-# Nole 1
-ix, iy, ix2, iy2 = 588,128,702,301
-channel = '802'
-
-# Nole 2
-ix, iy, ix2, iy2 = 323, 141, 703, 191
-channel = '902'
-
-# Nole 4
-ix, iy, ix2, iy2 = 400, 94, 543, 295
-channel = '1102'
-
-# Nole 5
-ix, iy, ix2, iy2 = 199, 85, 315, 261
-channel = '1102'
-
-# Nole 6
-ix, iy, ix2, iy2 = 397, 124, 506, 322
-channel = '1202'
-
-# Nole 7
-ix, iy, ix2, iy2 = 547,141,632,327
-channel = '1302'
-
-# Nole 8
-ix, iy, ix2, iy2 = 426,111,501,376
-channel = '1402'
-
-# Nole 9
-ix, iy, ix2, iy2 = 235,169,297,347
-channel = '1502'
-
-# Nole 10
-ix, iy, ix2, iy2 = 308,177,514,294
+ix, iy, ix2, iy2 = 308, 177, 514, 294
 channel = '1602'
-"""
 
-# Nole 4
-ix, iy, ix2, iy2 = 400, 94, 543, 295
-channel = '1102'
 
+values = []
 streamUrl = 'rtsp://' + username + ':' + password + \
     '@' + ip_address + ':554/Streaming/channels/' + channel
 toast = ToastNotifier()
@@ -107,10 +66,10 @@ if vc.isOpened():  # try to get the first frame
     print("starting loop")
     cv2.waitKey(100)
 
-    if showselectionwindow:
-        rval1, selectionFrame = vc.read()
-        cv2.imshow("selectionFrame", selectionFrame)
-        cv2.setMouseCallback('selectionFrame', handleMouse)
+if showselectionwindow:
+    rval1, selectionFrame = vc.read()
+    cv2.imshow("selectionFrame", selectionFrame)
+    cv2.setMouseCallback('selectionFrame', handleMouse)
 
 
 while 1:
@@ -177,6 +136,5 @@ while 1:
 
 # cv2.destroyWindow("selection")
 cv2.destroyAllWindows()
-
 toast.show_toast("WOW!!", "script completed",
                  duration=3, icon_path="python_icon.ico")
