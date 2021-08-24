@@ -12,48 +12,51 @@ username = "admin"
 password = "ayman1351359"
 
 if len(sys.argv) > 1:
-    nole = sys.argv[1]
+    targetcam = sys.argv[1]
 else:
-    nole = "1"
+    targetcam = "nole1"
 
-if nole == "1":
+if targetcam == "nole1":
     ix, iy, ix2, iy2 = 588, 128, 702, 301
     channel = '802'
-elif nole == "2":
+elif targetcam == "nole2":
     ix, iy, ix2, iy2 = 323, 141, 703, 191
     channel = '902'
-elif nole == "3":
-    ix, iy, ix2, iy2 = 323, 141, 703, 191
-    channel = '902'
-elif nole == "4":
+elif targetcam == "nole3":
+    ix, iy, ix2, iy2 = 228, 307, 301, 385
+    channel = '1002'
+elif targetcam == "nole4":
     ix, iy, ix2, iy2 = 400, 94, 543, 295
     channel = '1102'
-elif nole == "5":
+elif targetcam == "nole5":
     ix, iy, ix2, iy2 = 199, 85, 315, 261
     channel = '1102'
-elif nole == "6":
+elif targetcam == "nole6":
     ix, iy, ix2, iy2 = 397, 124, 506, 322
     channel = '1202'
-elif nole == "7":
+elif targetcam == "nole7":
     ix, iy, ix2, iy2 = 547, 141, 632, 327
     channel = '1302'
-elif nole == "8":
+elif targetcam == "nole8":
     ix, iy, ix2, iy2 = 426, 111, 501, 376
     channel = '1402'
-elif nole == "9":
+elif targetcam == "nole9":
     ix, iy, ix2, iy2 = 235, 169, 297, 347
     channel = '1502'
-elif nole == "10":
+elif targetcam == "nole10":
     ix, iy, ix2, iy2 = 308, 177, 514, 294
     channel = '1602'
+elif targetcam == "dawara":
+    ix, iy, ix2, iy2 = 626, 131, 752, 246
+    channel = '602'
 else:
-    print("nole not specified in args")
-    nole = "1"
+    print("targetcam not specified in args")
+    targetcam = "nole1"
     ix, iy, ix2, iy2 = 588, 128, 702, 301
     channel = '802'
 
 
-print("tracking nole "+nole)
+print("tracking "+targetcam)
 
 streamUrl = 'rtsp://' + username + ':' + password + \
     '@' + ip_address + ':554/Streaming/channels/' + channel
@@ -63,7 +66,7 @@ toast = ToastNotifier()
 vc = cv2.VideoCapture(streamUrl)
 
 
-file_object = open('logs_motion\log_motion_nole'+nole+'.txt', 'a')
+file_object = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
 
 if vc.isOpened():  # try to get the first frame
     print("starting loop")

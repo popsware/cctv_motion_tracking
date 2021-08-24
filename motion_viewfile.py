@@ -5,18 +5,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 if len(sys.argv) > 1:
-    nole = sys.argv[1]
+    targetcam = sys.argv[1]
 else:
-    nole = "1"
+    targetcam = "nole1"
 
 
-plt.title('Motion of Nole '+nole)
+plt.title('Motion of '+targetcam)
 plt.xlabel('Timeline')
 plt.ylabel('Motion Detected')
 
 dates = []
 numbers = []
-with open("logs_motion\log_motion_nole"+nole+".txt") as file_object:
+with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
         datestring = rowelements[0]+" "+rowelements[1]

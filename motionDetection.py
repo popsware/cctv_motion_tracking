@@ -1,4 +1,5 @@
 # libraries
+import datetime
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
@@ -14,14 +15,15 @@ fontScale = 1
 color = (255, 0, 0)
 thickness = 2
 showmotionplot = True
-showselectionwindow = False
-showmotionframe = False
+showselectionwindow = True
+showmotionframe = True
 showlivefeed = True
 
-ix, iy, ix2, iy2 = 308, 177, 514, 294
-channel = '1602'
+ix, iy, ix2, iy2 = 626, 131, 752, 246
+channel = '602'
 
 
+dates = []
 values = []
 streamUrl = 'rtsp://' + username + ':' + password + \
     '@' + ip_address + ':554/Streaming/channels/' + channel
@@ -100,11 +102,13 @@ while 1:
         cv2.imshow("motionframe", thresh)
 
     if showmotionplot:
+        dates.append(datetime.datetime.now())
         values.append(number)
         if len(values) > 400:
+            dates.pop(0)
             values.pop(0)
             plt.clf()
-        plt.plot(values)
+        plt.plot(dates, values)
         plt.pause(0.5)
 
     if showlivefeed:
