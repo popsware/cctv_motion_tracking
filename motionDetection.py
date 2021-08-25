@@ -19,8 +19,8 @@ showselectionwindow = True
 showmotionframe = True
 showlivefeed = True
 
-ix, iy, ix2, iy2 = 626, 131, 752, 246
-channel = '602'
+ix, iy, ix2, iy2 = 505, 76, 518, 120
+channel = '2002'
 
 
 dates = []
