@@ -2,6 +2,8 @@ import datetime
 import sys
 import cv2
 import ctypes
+import tkinter as tk
+from tkinter import simpledialog
 
 
 ip_address = "192.168.1.20"
@@ -11,7 +13,11 @@ password = "ayman1351359"
 if len(sys.argv) > 1:
     targetcam = sys.argv[1]
 else:
-    targetcam = "nole1"
+    ROOT = tk.Tk()
+    ROOT.withdraw()
+    # the input dialog
+    targetcam = simpledialog.askstring(
+        title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
 
 if targetcam == "nole1":
     ix, iy, ix2, iy2 = 588, 128, 702, 301
