@@ -4,11 +4,17 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
+import tkinter as tk
+from tkinter import simpledialog
 
 if len(sys.argv) > 1:
     targetcam = sys.argv[1]
 else:
-    targetcam = "nole1"
+    ROOT = tk.Tk()
+    ROOT.withdraw()
+    # the input dialog
+    targetcam = simpledialog.askstring(
+        title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
 
 
 dates = []
@@ -20,7 +26,7 @@ with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
         m_date = datetime.datetime.strptime(
             datestring, '%Y/%m/%d %H:%M:%S')
         m_float = float(rowelements[2])
-        print(index, m_date, m_float)
+        #print(index, m_date, m_float)
         dates.append(m_date)
         numbers.append(m_float)
         # plt.plot(index, m_float, 'bo')
