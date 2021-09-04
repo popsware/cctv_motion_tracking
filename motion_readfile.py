@@ -38,7 +38,7 @@ ax.set(xlabel='Start: '+str(dates[0])+'\n  End:'+str(dates[len(dates)-1]),
        title='Motion of '+targetcam)
 ax.plot(dates, numbers)
 
-myFmt = mdates.DateFormatter('%H:%M')
+myFmt = mdates.DateFormatter('%d %H:%M')
 ax.xaxis.set_major_formatter(myFmt)
 
 # rotates and right aligns the x labels, and moves the bottom of the
