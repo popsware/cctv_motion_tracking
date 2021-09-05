@@ -62,12 +62,13 @@ else:
     channel = '802'
 
 
+streamUrl = 'rtsp://' + username + ':' + password + \
+    '@' + ip_address + ':554/Streaming/channels/' + channel
+file_object = open('logs_motion\log_motion_writefile_'+targetcam+'.txt', 'a')
 ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
 print("tracking "+targetcam)
 
-streamUrl = 'rtsp://' + username + ':' + password + \
-    '@' + ip_address + ':554/Streaming/channels/' + channel
-file_object = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
+
 vc = cv2.VideoCapture(streamUrl)
 
 if not vc.isOpened():  # try to get the first frame

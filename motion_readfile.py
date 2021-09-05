@@ -19,7 +19,7 @@ else:
 
 dates = []
 numbers = []
-with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
+with open("logs_motion\log_motion_writefile_"+targetcam+".txt") as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
         datestring = rowelements[0]+" "+rowelements[1]
