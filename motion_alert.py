@@ -19,6 +19,10 @@ fontScale = 1
 color = (255, 0, 0)
 thickness = 2
 
+
+# Controls to run the script
+show_globalstatuschangealerts = False
+
 # Streaming Channel & Detection Frame Selection
 
 if len(sys.argv) > 1:
@@ -196,8 +200,9 @@ while 1:
                 msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Global State: Moving, after being stopped from " + \
                     global_state_lastchange_date.strftime("%Y/%m/%d %H:%M:%S")
                 print(msg)
-                toast.show_toast(
-                    "Machine "+targetcam, "Machine just started running again", duration=3, icon_path="python_icon.ico")
+                if show_globalstatuschangealerts:
+                    toast.show_toast(
+                        "Machine "+targetcam, "Machine just started running again", duration=3, icon_path="python_icon.ico")
                 file_object.write(msg + "\n")
                 file_object.flush()
 
@@ -213,8 +218,9 @@ while 1:
                 msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Global State: Not Moving, after being running from @ " + \
                     global_state_lastchange_date.strftime("%Y/%m/%d %H:%M:%S")
                 print(msg)
-                toast.show_toast(
-                    "Machine "+targetcam, "Machine just stopped", duration=3, icon_path="python_icon.ico")
+                if show_globalstatuschangealerts:
+                    toast.show_toast(
+                        "Machine "+targetcam, "Machine just stopped", duration=3, icon_path="python_icon.ico")
                 file_object.write(msg + "\n")
                 file_object.flush()
 
