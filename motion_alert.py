@@ -123,7 +123,7 @@ global_state_stopalert_displayed = False
 streamUrl = 'rtsp://' + username + ':' + password + \
     '@' + ip_address + ':554/Streaming/channels/' + channel
 toast = ToastNotifier()
-file_object = open('logs_motion\log_motion_alert_'+targetcam+'.txt', 'a')
+file_object = open('logs_motion\log_motionalert_'+targetcam+'.txt', 'a')
 ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
 print("tracking "+targetcam)
 
@@ -135,9 +135,6 @@ vc = cv2.VideoCapture(streamUrl)
 width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
 height = vc.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
 print("starting camera frame: ", width, height)
-
-toast.show_toast("Motion Alert", "Starting script to alert on start/stop of machine "+targetcam,
-                 duration=3, icon_path="python_icon.ico")
 
 
 while 1:
@@ -196,9 +193,11 @@ while 1:
             # most of the flags are "moving", switching the status
             if not global_state == 1:
                 # changing status from not moving to moving
-
-                msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Global State: Moving, after being stopped from " + \
-                    global_state_lastchange_date.strftime("%Y/%m/%d %H:%M:%S")
+                stopping_period = (datetime.datetime.now(
+                ) - global_state_lastchange_date).total_seconds()/60
+                msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + \
+                    " - Global State: Moving, after being stopped for " + \
+                    str(stopping_period)+" min"
                 print(msg)
                 if show_globalstatuschangealerts:
                     toast.show_toast(
@@ -214,9 +213,11 @@ while 1:
             # most of the flags are "not moving", switching the status
             if not global_state == 0:
                 # changing status from moving to not moving
-
-                msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Global State: Not Moving, after being running from @ " + \
-                    global_state_lastchange_date.strftime("%Y/%m/%d %H:%M:%S")
+                running_period = (datetime.datetime.now(
+                ) - global_state_lastchange_date).total_seconds()/60
+                msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + \
+                    " - Global State: Not Moving, after being running for " + \
+                    str(running_period)+" min"
                 print(msg)
                 if show_globalstatuschangealerts:
                     toast.show_toast(
@@ -248,5 +249,3 @@ while 1:
 
 
 cv2.destroyAllWindows()
-toast.show_toast("Motion Alert", "Ending script to alert on start/stop of machine "+targetcam,
-                 duration=3, icon_path="python_icon.ico")

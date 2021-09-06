@@ -1,8 +1,8 @@
 # libraries
-import datetime
-import sys
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import datetime
+import sys
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog
@@ -16,21 +16,30 @@ else:
     targetcam = simpledialog.askstring(
         title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
 
+filename = "logs_motion\log_motion_"+targetcam
 
+
+# Grabbing the data
+
+indecies = []
 dates = []
 numbers = []
-with open("logs_motion\log_motion_writefile_"+targetcam+".txt") as file_object:
+with open(filename+".txt") as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
         datestring = rowelements[0]+" "+rowelements[1]
         m_date = datetime.datetime.strptime(
             datestring, '%Y/%m/%d %H:%M:%S')
         m_float = float(rowelements[2])
-        #print(index, m_date, m_float)
+        # print(index, m_date, m_float)
+        indecies.append(index)
         dates.append(m_date)
         numbers.append(m_float)
         # plt.plot(index, m_float, 'bo')
 
+# Plotting the data
+
+# Using the matplotlib library to display plot in a window
 
 fig, ax = plt.subplots()
 ax.set(xlabel='Start: '+str(dates[0])+'\n  End:'+str(dates[len(dates)-1]),
