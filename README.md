@@ -13,6 +13,13 @@ This README would normally document whatever steps are necessary to get your app
 * Summary of set up
 * Configuration
 * Dependencies
+    pip install opencv-python
+    pip install tkinter
+    pip install simpledialog
+    pip install matplotlib
+    pip install numpy
+    pip install plotly
+    pip install ToastNotifier
 * Database configuration
 * How to run tests
 * Deployment instructions

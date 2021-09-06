@@ -3,14 +3,20 @@ import datetime
 from tkinter.constants import FALSE
 import matplotlib.pyplot as plt
 import cv2
+import ctypes
 import numpy as np
 import imutils
 from win10toast import ToastNotifier
+from configparser import ConfigParser
+import sys
+import os
 
-# Constants to stream
-ip_address = "192.168.1.20"
-username = "admin"
-password = "ayman1351359"
+# Initializers
+
+config = ConfigParser()
+config.read('config.ini')
+toast = ToastNotifier()
+
 
 # Constants to format
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -20,87 +26,35 @@ color = (255, 0, 0)
 thickness = 2
 
 # Controls to run the script
-show_motionplot = False
-show_selectionwindow = False
-show_motionframe = False
+show_motionplot = True
+show_selectionwindow = True
+show_motionframe = True
 show_livefeed = True
 
 # Streaming Channel & Detection Frame Selection
-targetcam = "nole1"
+targetcam = "homecam"
 
-if targetcam == "nole1":
-    threshold = 500       # movement fail rate: 20%
-    ix, iy, ix2, iy2 = 285, 63, 317, 124
-    channel = '802'
+# Constants to stream
+ip_address = config.get('stream', 'ip_address')
+username = config.get('stream', 'username')
+password = config.get('stream', 'password')
 
-elif targetcam == "nole2":
-    threshold = 500       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 323, 141, 703, 191
-    channel = '902'
 
-elif targetcam == "nole3":
-    threshold = 0       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 228, 307, 301, 385
-    channel = '1002'
-
-elif targetcam == "nole4":
-    threshold = 500       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 462, 181, 548, 304
-    channel = '1102'
-
-elif targetcam == "nole5":
-    # [x] tested
-    threshold = 500       # movement fail rate: 15%
-    ix, iy, ix2, iy2 = 34, 255, 230, 315
-    channel = '1102'
-
-elif targetcam == "nole6":
-    threshold = 200       # movement fail rate: 50%
-    ix, iy, ix2, iy2 = 452, 209, 605, 387
-    channel = '1202'
-
-elif targetcam == "nole7":
-    threshold = 2000       # movement fail rate: 0%
-    ix, iy, ix2, iy2 = 347, 7, 391, 94
-    channel = '1302'
-
-elif targetcam == "nole8":
-    threshold = 0       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 426, 111, 501, 376
-    channel = '1402'
-
-elif targetcam == "nole9":
-    threshold = 500       # movement fail rate: 25%
-    ix, iy, ix2, iy2 = 326, 179, 393, 453
-    channel = '1502'
-
-elif targetcam == "nole10":
-    threshold = 200      # movement fail rate: 0.5%
-    ix, iy, ix2, iy2 = 301, 39, 449, 250
-    channel = '1602'
-
-elif targetcam == "nole11":
-    threshold = 0       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 505, 76, 518, 120
-    channel = '2002'
-
-elif targetcam == "dawara":
-    threshold = 0       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 626, 131, 752, 246
-    channel = '602'
-
-elif targetcam == "lazona":
-    threshold = 0       # movement fail rate: ??
-    ix, iy, ix2, iy2 = 18, 75, 278, 285
-    channel = '702'
-
-else:
-    print("targetcam not supported, falling back to nole1")
-    threshold = 500
-    stickered = True
-    ix, iy, ix2, iy2 = 280, 63, 312, 124
-    channel = '802'
-
+# Constants to stream channel
+try:
+    threshold = config.getint(targetcam, 'threshold')
+    ix = config.getint(targetcam, 'ix')
+    iy = config.getint(targetcam, 'iy')
+    ix2 = config.getint(targetcam, 'ix2')
+    iy2 = config.getint(targetcam, 'iy2')
+    channel = config.get(targetcam, 'channel')
+    streamUrl = 'rtsp://' + username + ':' + password + '@' + \
+        ip_address + ':554/Streaming/channels/' + channel
+    ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
+    print("tracking "+targetcam)
+except ConfigParser.NoOptionError:
+    print('could not read targetcam '+targetcam+'from configuration file')
+    sys.exit(1)
 
 # vars for plot
 motionplot_limit = 400
@@ -120,12 +74,6 @@ global_state_msg = ""
 global_state_lastchange_date = datetime.datetime.now()
 global_state_mins_to_alert_onstop = 20
 global_state_stopalert_displayed = False
-
-
-# Initializers
-streamUrl = 'rtsp://' + username + ':' + password + \
-    '@' + ip_address + ':554/Streaming/channels/' + channel
-toast = ToastNotifier()
 
 
 # mouse callback function for frame selection
@@ -152,9 +100,11 @@ def handleMouse(event, x, y, flags, param):
 
 
 # Starting the Logic
+
 # cv2.namedWindow("selectionFrame")
-#vc = cv2.VideoCapture(0)
-vc = cv2.VideoCapture(streamUrl)
+vc = cv2.VideoCapture(0)
+#vc = cv2.VideoCapture(streamUrl)
+
 width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
 height = vc.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
 print("starting camera frame: ", width, height)
