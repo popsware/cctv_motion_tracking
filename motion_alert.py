@@ -13,25 +13,27 @@ import os
 
 
 # Initializers
-
 config = ConfigParser()
 config.read('config.ini')
 toast = ToastNotifier()
 
-
-# Constants to format
-font = cv2.FONT_HERSHEY_SIMPLEX
-org = (50, 50)
-fontScale = 1
-color = (255, 0, 0)
-thickness = 2
-
-
 # Controls to run the script
 show_globalstatuschangealerts = False
+# Constants to stream
+ip_address = config.get('stream', 'ip_address')
+username = config.get('stream', 'username')
+password = config.get('stream', 'password')
+# Global state: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
+globalstate_flags = []
+# 30 flags, for 30 frames, for 30 secs (waiting is 1000ms)
+globalstate_flags_limit = 30
+global_state = -1  # 0 for stopped, 1 for moving
+global_state_msg = ""
+global_state_lastchange_date = datetime.datetime.now()
+global_state_mins_to_alert_onstop = 20
+global_state_stopalert_displayed = False
 
 # Streaming Channel & Detection Frame Selection
-
 if len(sys.argv) > 1:
     targetcam = sys.argv[1]
 else:
@@ -40,12 +42,6 @@ else:
     # the input dialog
     targetcam = simpledialog.askstring(
         title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
-
-# Constants to stream
-ip_address = config.get('stream', 'ip_address')
-username = config.get('stream', 'username')
-password = config.get('stream', 'password')
-
 
 # Constants to stream channel
 try:
@@ -63,18 +59,6 @@ except ConfigParser.NoOptionError:
     print('could not read targetcam '+targetcam+'from configuration file')
     sys.exit(1)
 
-
-# Global state: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
-globalstate_flags = []
-# 30 flags, for 30 frames, for 30 secs (waiting is 1000ms)
-globalstate_flags_limit = 30
-global_state = -1  # 0 for stopped, 1 for moving
-global_state_msg = ""
-global_state_lastchange_date = datetime.datetime.now()
-global_state_mins_to_alert_onstop = 20
-global_state_stopalert_displayed = False
-
-
 #Path("/logs_motion").mkdir(parents=True, exist_ok=True)
 os.makedirs("logs_motion", exist_ok=True)
 file_object = open('logs_motion\log_motionalert_'+targetcam+'.txt', 'a')
@@ -82,8 +66,10 @@ file_object = open('logs_motion\log_motionalert_'+targetcam+'.txt', 'a')
 
 # Starting the Logic
 
-#vc = cv2.VideoCapture(streamUrl)
-vc = cv2.VideoCapture(0)
+if channel == "webcam":
+    vc = cv2.VideoCapture(0)
+else:
+    vc = cv2.VideoCapture(streamUrl)
 
 width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
 height = vc.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
@@ -97,7 +83,10 @@ while 1:
     if (not rval1) or (not rval2):
         print("can't capture, restarting the stream....")
         vc.release()
-        vc = cv2.VideoCapture(streamUrl)
+        if channel == "webcam":
+            vc = cv2.VideoCapture(0)
+        else:
+            vc = cv2.VideoCapture(streamUrl)
         cv2.waitKey(1000)
         continue
 

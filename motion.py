@@ -12,59 +12,35 @@ import sys
 import os
 
 # Initializers
-
 config = ConfigParser()
 config.read('config.ini')
 toast = ToastNotifier()
 
 
+# Controls to run the script
+# Streaming Channel & Detection Frame Selection
+targetcam = "homecam"
+show_motionplot = True
+show_selectionwindow = True
+show_motionframe = True
+show_livefeed = True
 # Constants to format
 font = cv2.FONT_HERSHEY_SIMPLEX
 org = (50, 50)
 fontScale = 1
 color = (255, 0, 0)
 thickness = 2
-
-# Controls to run the script
-show_motionplot = True
-show_selectionwindow = True
-show_motionframe = True
-show_livefeed = True
-
-# Streaming Channel & Detection Frame Selection
-targetcam = "homecam"
-
 # Constants to stream
 ip_address = config.get('stream', 'ip_address')
 username = config.get('stream', 'username')
 password = config.get('stream', 'password')
-
-
-# Constants to stream channel
-try:
-    threshold = config.getint(targetcam, 'threshold')
-    ix = config.getint(targetcam, 'ix')
-    iy = config.getint(targetcam, 'iy')
-    ix2 = config.getint(targetcam, 'ix2')
-    iy2 = config.getint(targetcam, 'iy2')
-    channel = config.get(targetcam, 'channel')
-    streamUrl = 'rtsp://' + username + ':' + password + '@' + \
-        ip_address + ':554/Streaming/channels/' + channel
-    ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
-    print("tracking "+targetcam)
-except ConfigParser.NoOptionError:
-    print('could not read targetcam '+targetcam+'from configuration file')
-    sys.exit(1)
-
 # vars for plot
 motionplot_limit = 400
 motionplot_dates = []
 motionplot_values = []
-
 # counters
 moving_frames = 0
 freeze_frames = 0
-
 # Global state: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
 globalstate_flags = []
 # 30 flags, for 30 frames, for 30 secs (waiting is 1000ms)
@@ -99,11 +75,31 @@ def handleMouse(event, x, y, flags, param):
         cv2.imshow("selectionFrame", selectionFrame)
 
 
+# Constants to stream channel
+try:
+    threshold = config.getint(targetcam, 'threshold')
+    ix = config.getint(targetcam, 'ix')
+    iy = config.getint(targetcam, 'iy')
+    ix2 = config.getint(targetcam, 'ix2')
+    iy2 = config.getint(targetcam, 'iy2')
+    channel = config.get(targetcam, 'channel')
+    streamUrl = 'rtsp://' + username + ':' + password + '@' + \
+        ip_address + ':554/Streaming/channels/' + channel
+    ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
+    print("tracking "+targetcam)
+except ConfigParser.NoOptionError:
+    print('could not read targetcam '+targetcam+'from configuration file')
+    sys.exit(1)
+
+
 # Starting the Logic
 
 # cv2.namedWindow("selectionFrame")
-vc = cv2.VideoCapture(0)
-#vc = cv2.VideoCapture(streamUrl)
+
+if channel == "webcam":
+    vc = cv2.VideoCapture(0)
+else:
+    vc = cv2.VideoCapture(streamUrl)
 
 width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
 height = vc.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
@@ -127,7 +123,10 @@ while 1:
     if (not rval1) or (not rval2):
         print("can't capture, restarting the stream....")
         vc.release()
-        vc = cv2.VideoCapture(streamUrl)
+        if channel == "webcam":
+            vc = cv2.VideoCapture(0)
+        else:
+            vc = cv2.VideoCapture(streamUrl)
         cv2.waitKey(1000)
         continue
 
