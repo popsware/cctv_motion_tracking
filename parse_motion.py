@@ -16,15 +16,13 @@ else:
     targetcam = simpledialog.askstring(
         title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
 
-filename = "logs_motion\log_motion_"+targetcam
-
 
 # Grabbing the data
 
 indecies = []
 dates = []
 numbers = []
-with open(filename+".txt") as file_object:
+with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
         datestring = rowelements[0]+" "+rowelements[1]
@@ -83,4 +81,4 @@ fig.update_layout(
     )
 )
 
-fig.write_html(filename+'.html', auto_open=True)
+fig.write_html("logs_motion\chart_motion_"+targetcam+'.html', auto_open=True)

@@ -12,14 +12,20 @@ import sys
 import os
 
 # Initializers
-config = ConfigParser()
-config.read('config.ini')
+config_stream = ConfigParser()
+config_stream.read('config_stream.ini')
+config_cam = ConfigParser()
+config_cam.read('config_cam.ini')
 toast = ToastNotifier()
 
 
 # Controls to run the script
+# Constants to stream
+ip_address = config_stream.get('stream', 'ip_address')
+username = config_stream.get('stream', 'username')
+password = config_stream.get('stream', 'password')
 # Streaming Channel & Detection Frame Selection
-targetcam = "homecam"
+targetcam = "nole1"
 show_motionplot = True
 show_selectionwindow = True
 show_motionframe = True
@@ -30,10 +36,6 @@ org = (50, 50)
 fontScale = 1
 color = (255, 0, 0)
 thickness = 2
-# Constants to stream
-ip_address = config.get('stream', 'ip_address')
-username = config.get('stream', 'username')
-password = config.get('stream', 'password')
 # vars for plot
 motionplot_limit = 400
 motionplot_dates = []
@@ -42,20 +44,20 @@ motionplot_values = []
 moving_frames = 0
 freeze_frames = 0
 # Global state: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
-globalstate_flags = []
+globalmotion_flags = []
 # 30 flags, for 30 frames, for 30 secs (waiting is 1000ms)
-globalstate_flags_limit = 30
-global_state = -1  # 0 for stopped, 1 for moving
-global_state_msg = ""
-global_state_lastchange_date = datetime.datetime.now()
-global_state_mins_to_alert_onstop = 20
-global_state_stopalert_displayed = False
+globalmotion_flags_limit = 30
+globalmotion_status = -1  # 0 for stopped, 1 for moving
+globalmotion_msg = ""
+globalmotion_lastchange_date = datetime.datetime.now()
+globalmotion_mins_to_alert_onstop = 20
+globalmotion_stopalert_displayed = False
 
 
 # mouse callback function for frame selection
 def handleMouse(event, x, y, flags, param):
     global ix, iy, ix2, iy2
-    #print("click ", ix, iy)
+    # print("click ", ix, iy)
     if event == cv2.EVENT_LBUTTONDOWN:
         ix, iy = x, y
         print("draw started ", x, y)
@@ -77,17 +79,18 @@ def handleMouse(event, x, y, flags, param):
 
 # Constants to stream channel
 try:
-    threshold = config.getint(targetcam, 'threshold')
-    ix = config.getint(targetcam, 'ix')
-    iy = config.getint(targetcam, 'iy')
-    ix2 = config.getint(targetcam, 'ix2')
-    iy2 = config.getint(targetcam, 'iy2')
-    channel = config.get(targetcam, 'channel')
+    threshold = config_cam.getint(targetcam, 'threshold')
+    ix = config_cam.getint(targetcam, 'ix')
+    iy = config_cam.getint(targetcam, 'iy')
+    ix2 = config_cam.getint(targetcam, 'ix2')
+    iy2 = config_cam.getint(targetcam, 'iy2')
+    channel = config_cam.get(targetcam, 'channel')
     streamUrl = 'rtsp://' + username + ':' + password + '@' + \
         ip_address + ':554/Streaming/channels/' + channel
+    print("streaming ", streamUrl)
     ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
-    print("tracking "+targetcam)
-except ConfigParser.NoOptionError:
+    print("tracking ", targetcam)
+except:
     print('could not read targetcam '+targetcam+'from configuration file')
     sys.exit(1)
 
@@ -97,8 +100,10 @@ except ConfigParser.NoOptionError:
 # cv2.namedWindow("selectionFrame")
 
 if channel == "webcam":
+    print("starting Webcam Stream")
     vc = cv2.VideoCapture(0)
 else:
+    print("starting CCTV Stream")
     vc = cv2.VideoCapture(streamUrl)
 
 width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)   # float `width`
@@ -145,8 +150,8 @@ while 1:
     frame2_cropped_gray = cv2.cvtColor(frame2_cropped, cv2.COLOR_BGR2GRAY)
 
     # Grey Scale
-    #gray1 = cv2.GaussianBlur(gray1, (21, 21), 0)
-    #gray2 = cv2.GaussianBlur(gray1, (21, 21), 0)
+    # gray1 = cv2.GaussianBlur(gray1, (21, 21), 0)
+    # gray2 = cv2.GaussianBlur(gray1, (21, 21), 0)
 
     # calculating the differences
     diff = cv2.absdiff(frame1_cropped_gray, frame2_cropped_gray)
@@ -200,57 +205,54 @@ while 1:
                 moving_frames += 1
                 cv2.putText(frame1, "Current Frame: Moving", (10, 50), font,
                             0.5, (255, 255, 255), 1, cv2.LINE_AA)
-                globalstate_flags.append(1)
+                globalmotion_flags.append(1)
             else:
                 freeze_frames += 1
                 cv2.putText(frame1, "Current Frame: Not moving", (10, 50), font,
                             0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                globalstate_flags.append(0)
+                globalmotion_flags.append(0)
 
             # limit moving flags to the counter
-            if len(globalstate_flags) > globalstate_flags_limit:
-                globalstate_flags.pop(0)
+            if len(globalmotion_flags) > globalmotion_flags_limit:
+                globalmotion_flags.pop(0)
 
             # check if moving flags are more than half
-            if globalstate_flags.count(1) > globalstate_flags_limit / 2:
+            if globalmotion_flags.count(1) > globalmotion_flags_limit / 2:
                 # most of the flags are "moving", switching the status
-                if not global_state == 1:
+                if not globalmotion_status == 1:
                     # changing status from not moving to moving
-                    toast.show_toast(
-                        "Machine "+targetcam, "Machine just started running again", duration=3, icon_path="python_icon.ico")
-                    global_state_lastchange_date = datetime.datetime.now()
-                    global_state = 1
-                    global_state_msg = "Moving since " + \
-                        datetime.datetime.now().strftime(
-                            "%Y/%m/%d %H:%M:%S")
-                    global_state_stopalert_displayed = False
+                    # toast.show_toast("Machine "+targetcam, "Machine just started running again", duration = 3, icon_path = "python_icon.ico")
+                    globalmotion_lastchange_date = datetime.datetime.now()
+                    globalmotion_status = 1
+                    globalmotion_msg = "Moving since " + \
+                        datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+                    globalmotion_stopalert_displayed = False
 
             else:
                 # most of the flags are "not moving", switching the status
-                if not global_state == 0:
+                if not globalmotion_status == 0:
                     # changing status from moving to not moving
-                    toast.show_toast(
-                        "Machine "+targetcam, "Machine just stopped", duration=3, icon_path="python_icon.ico")
-                    global_state_msg = "Not Moving since " + \
+                    # toast.show_toast("Machine "+targetcam, "Machine just stopped", duration=3, icon_path="python_icon.ico")
+                    globalmotion_msg = "Not Moving since " + \
                         datetime.datetime.now().strftime(
                             "%Y/%m/%d %H:%M:%S")
-                    global_state = 0
-                    global_state_lastchange_date = datetime.datetime.now()
+                    globalmotion_status = 0
+                    globalmotion_lastchange_date = datetime.datetime.now()
                 else:
                     # already on not moving status
                     minutes_from_first_stop = (datetime.datetime.now(
-                    ) - global_state_lastchange_date).total_seconds() / 60
-                    if minutes_from_first_stop >= global_state_mins_to_alert_onstop and not global_state_stopalert_displayed:
-                        global_state_stopalert_displayed = True
+                    ) - globalmotion_lastchange_date).total_seconds() / 60
+                    if minutes_from_first_stop >= globalmotion_mins_to_alert_onstop and not globalmotion_stopalert_displayed:
+                        globalmotion_stopalert_displayed = True
                         toast.show_toast("Alert - Machine "+targetcam, "Machine was stopped for "+str(
-                            global_state_mins_to_alert_onstop)+" mins", duration=3, icon_path="python_icon.ico")
+                            globalmotion_mins_to_alert_onstop)+" mins", duration=3, icon_path="python_icon.ico")
 
             cv2.putText(frame1, "moving_frames="+str(moving_frames),
                         (10, 70), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
             cv2.putText(frame1, "freeze_frames="+str(freeze_frames),
                         (10, 90), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
-        cv2.putText(frame1, "Current Status="+str(global_state_msg),
+        cv2.putText(frame1, "Current Status="+str(globalmotion_msg),
                     (10, 110), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.imshow("frame1", frame1)
 

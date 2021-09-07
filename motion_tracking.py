@@ -13,25 +13,32 @@ import os
 
 
 # Initializers
-config = ConfigParser()
-config.read('config.ini')
+config_stream = ConfigParser()
+config_stream.read('config_stream.ini')
+config_cam = ConfigParser()
+config_cam.read('config_cam.ini')
 toast = ToastNotifier()
 
 # Controls to run the script
-show_globalstatuschangealerts = False
+alert_globalmotion_change = False
+alert_globalmotion_warn = True
+write_motion = True
+write_globalmotion_change = True
+write_globalmotion_warn = True
+
 # Constants to stream
-ip_address = config.get('stream', 'ip_address')
-username = config.get('stream', 'username')
-password = config.get('stream', 'password')
-# Global state: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
-globalstate_flags = []
+ip_address = config_stream.get('stream', 'ip_address')
+username = config_stream.get('stream', 'username')
+password = config_stream.get('stream', 'password')
+# Global Motion: global state only change when a certain windows has more stop frames than moving frames (or vice versa)
+globalmotion_flags = []
 # 30 flags, for 30 frames, for 30 secs (waiting is 1000ms)
-globalstate_flags_limit = 30
-global_state = -1  # 0 for stopped, 1 for moving
-global_state_msg = ""
-global_state_lastchange_date = datetime.datetime.now()
-global_state_mins_to_alert_onstop = 20
-global_state_stopalert_displayed = False
+globalmotion_flags_limit = 30
+globalmotion_status = -1  # 0 for stopped, 1 for moving
+globalmotion_msg = ""
+globalmotion_lastchange_date = datetime.datetime.now()
+globalmotion_mins_to_alert_onstop = 20
+globalmotion_stopalert_displayed = False
 
 # Streaming Channel & Detection Frame Selection
 if len(sys.argv) > 1:
@@ -45,23 +52,28 @@ else:
 
 # Constants to stream channel
 try:
-    threshold = config.getint(targetcam, 'threshold')
-    ix = config.getint(targetcam, 'ix')
-    iy = config.getint(targetcam, 'iy')
-    ix2 = config.getint(targetcam, 'ix2')
-    iy2 = config.getint(targetcam, 'iy2')
-    channel = config.get(targetcam, 'channel')
+    threshold = config_cam.getint(targetcam, 'threshold')
+    ix = config_cam.getint(targetcam, 'ix')
+    iy = config_cam.getint(targetcam, 'iy')
+    ix2 = config_cam.getint(targetcam, 'ix2')
+    iy2 = config_cam.getint(targetcam, 'iy2')
+    channel = config_cam.get(targetcam, 'channel')
     streamUrl = 'rtsp://' + username + ':' + password + '@' + \
         ip_address + ':554/Streaming/channels/' + channel
+    print("streaming ", streamUrl)
     ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
-    print("tracking "+targetcam)
-except ConfigParser.NoOptionError:
+    print("tracking ", targetcam)
+except:
     print('could not read targetcam '+targetcam+'from configuration file')
     sys.exit(1)
 
 #Path("/logs_motion").mkdir(parents=True, exist_ok=True)
 os.makedirs("logs_motion", exist_ok=True)
-file_object = open('logs_motion\log_motionalert_'+targetcam+'.txt', 'a')
+file_globalmotion_warn = open(
+    'logs_motion\log_globalmotion_warn_'+targetcam+'.txt', 'a')
+file_globalmotion_change = open(
+    'logs_motion\log_globalmotion_change_'+targetcam+'.txt', 'a')
+file_motion = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
 
 
 # Starting the Logic
@@ -116,74 +128,91 @@ while 1:
 
     # numizing the motion factor
     number = cv2.countNonZero(thresh)
+    print(str(number))
+
+    # write movement to file
+    if write_motion:
+        file_motion.write(datetime.datetime.now().strftime(
+            "%Y/%m/%d %H:%M:%S") + " "+str(number) + "\n")
+        file_motion.flush()
 
     # Algorithm to define Moving vs Stop
     if threshold >= 0:
         if number > threshold:
-            globalstate_flags.append(1)
-            #print("Frame: moving", len(globalstate_flags))
+            globalmotion_flags.append(1)
+            #print("Frame: moving", len(globalmotion_flags))
         else:
-            globalstate_flags.append(0)
-            #print("Frame: not moving", len(globalstate_flags))
+            globalmotion_flags.append(0)
+            #print("Frame: not moving", len(globalmotion_flags))
 
         # limit moving flags to the counter
-        if len(globalstate_flags) > globalstate_flags_limit:
-            globalstate_flags.pop(0)
+        if len(globalmotion_flags) > globalmotion_flags_limit:
+            globalmotion_flags.pop(0)
 
         # check if moving flags are more than half
-        if globalstate_flags.count(1) > globalstate_flags_limit / 2:
+        if globalmotion_flags.count(1) > globalmotion_flags_limit / 2:
             # most of the flags are "moving", switching the status
-            if not global_state == 1:
+            if not globalmotion_status == 1:
                 # changing status from not moving to moving
                 stopping_period = (datetime.datetime.now(
-                ) - global_state_lastchange_date).total_seconds()/60
+                ) - globalmotion_lastchange_date).total_seconds()/60
                 msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + \
                     " - Global State: Moving, after being stopped for " + \
                     str(stopping_period)+" min"
                 print(msg)
-                if show_globalstatuschangealerts:
+
+                if alert_globalmotion_change:
                     toast.show_toast(
                         "Machine "+targetcam, "Machine just started running again", duration=3, icon_path="python_icon.ico")
-                file_object.write(msg + "\n")
-                file_object.flush()
 
-                global_state_lastchange_date = datetime.datetime.now()
-                global_state = 1
-                global_state_stopalert_displayed = False
+                if write_globalmotion_change:
+                    file_globalmotion_change.write(msg + "\n")
+                    file_globalmotion_change.flush()
+
+                globalmotion_lastchange_date = datetime.datetime.now()
+                globalmotion_status = 1
+                globalmotion_stopalert_displayed = False
 
         else:
             # most of the flags are "not moving", switching the status
-            if not global_state == 0:
+            if not globalmotion_status == 0:
                 # changing status from moving to not moving
                 running_period = (datetime.datetime.now(
-                ) - global_state_lastchange_date).total_seconds()/60
+                ) - globalmotion_lastchange_date).total_seconds()/60
                 msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + \
                     " - Global State: Not Moving, after being running for " + \
                     str(running_period)+" min"
                 print(msg)
-                if show_globalstatuschangealerts:
+
+                if alert_globalmotion_change:
                     toast.show_toast(
                         "Machine "+targetcam, "Machine just stopped", duration=3, icon_path="python_icon.ico")
-                file_object.write(msg + "\n")
-                file_object.flush()
 
-                global_state = 0
-                global_state_lastchange_date = datetime.datetime.now()
+                if write_globalmotion_change:
+                    file_globalmotion_change.write(msg + "\n")
+                    file_globalmotion_change.flush()
+
+                globalmotion_status = 0
+                globalmotion_lastchange_date = datetime.datetime.now()
 
             else:
                 # already on not moving status
                 minutes_from_first_stop = (datetime.datetime.now(
-                ) - global_state_lastchange_date).total_seconds() / 60
-                if minutes_from_first_stop >= global_state_mins_to_alert_onstop and not global_state_stopalert_displayed:
-                    global_state_stopalert_displayed = True
-                    toast.show_toast("Alert - Machine "+targetcam, "Machine was stopped for "+str(
-                        global_state_mins_to_alert_onstop)+" mins", duration=3, icon_path="python_icon.ico")
+                ) - globalmotion_lastchange_date).total_seconds() / 60
+                if minutes_from_first_stop >= globalmotion_mins_to_alert_onstop and not globalmotion_stopalert_displayed:
+                    globalmotion_stopalert_displayed = True
                     msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Machine Not Moving since " + \
-                        global_state_lastchange_date.strftime(
+                        globalmotion_lastchange_date.strftime(
                             "%Y/%m/%d %H:%M:%S")
                     print(msg)
-                    file_object.write(msg + "\n")
-                    file_object.flush()
+
+                    if alert_globalmotion_warn:
+                        toast.show_toast("Alert - Machine "+targetcam, "Machine was stopped for "+str(
+                            globalmotion_mins_to_alert_onstop)+" mins", duration=3, icon_path="python_icon.ico")
+
+                    if write_globalmotion_warn:
+                        file_globalmotion_warn.write(msg + "\n")
+                        file_globalmotion_warn.flush()
 
     key = cv2.waitKey(1000)
     if key == 27:  # exit on ESC
@@ -191,3 +220,6 @@ while 1:
 
 
 cv2.destroyAllWindows()
+file_motion.close()
+file_globalmotion_change.close()
+file_globalmotion_warn.close()
