@@ -25,7 +25,7 @@ ip_address = config_stream.get('stream', 'ip_address')
 username = config_stream.get('stream', 'username')
 password = config_stream.get('stream', 'password')
 # Streaming Channel & Detection Frame Selection
-targetcam = "nole1"
+targetcam = "nole4"
 show_motionplot = True
 show_selectionwindow = True
 show_motionframe = True
@@ -113,7 +113,6 @@ print("starting camera frame: ", width, height)
 
 if vc.isOpened():  # try to get the first frame
     print("starting loop")
-    cv2.waitKey(100)
 
 if show_selectionwindow:
     rval1, selectionFrame = vc.read()

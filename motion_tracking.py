@@ -21,10 +21,10 @@ toast = ToastNotifier()
 
 # Controls to run the script
 alert_globalmotion_change = False
-alert_globalmotion_warn = True
+alert_deepsleep_warn = True
 write_motion = True
 write_globalmotion_change = True
-write_globalmotion_warn = True
+write_deepsleep_warn = True
 
 # Constants to stream
 ip_address = config_stream.get('stream', 'ip_address')
@@ -37,8 +37,8 @@ globalmotion_flags_limit = 30
 globalmotion_status = -1  # 0 for stopped, 1 for moving
 globalmotion_msg = ""
 globalmotion_lastchange_date = datetime.datetime.now()
-globalmotion_mins_to_alert_onstop = 20
-globalmotion_stopalert_displayed = False
+globalmotion_deepsleep_mins = 20
+globalmotion_deepsleep_alertdisplayed = False
 
 # Streaming Channel & Detection Frame Selection
 if len(sys.argv) > 1:
@@ -69,8 +69,8 @@ except:
 
 #Path("/logs_motion").mkdir(parents=True, exist_ok=True)
 os.makedirs("logs_motion", exist_ok=True)
-file_globalmotion_warn = open(
-    'logs_motion\log_globalmotion_warn_'+targetcam+'.txt', 'a')
+file_deepsleep_warn = open(
+    'logs_motion\log_deepsleep_warn_'+targetcam+'.txt', 'a')
 file_globalmotion_change = open(
     'logs_motion\log_globalmotion_change_'+targetcam+'.txt', 'a')
 file_motion = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
@@ -171,7 +171,12 @@ while 1:
 
                 globalmotion_lastchange_date = datetime.datetime.now()
                 globalmotion_status = 1
-                globalmotion_stopalert_displayed = False
+
+                if globalmotion_deepsleep_alertdisplayed:
+                    globalmotion_deepsleep_alertdisplayed = False
+                    if alert_deepsleep_warn:
+                        toast.show_toast("Machine "+targetcam+" exited deep sleep", "Machine was deep sleeping for "+str(
+                            globalmotion_deepsleep_mins)+" mins", duration=3, icon_path="python_icon.ico")
 
         else:
             # most of the flags are "not moving", switching the status
@@ -199,20 +204,24 @@ while 1:
                 # already on not moving status
                 minutes_from_first_stop = (datetime.datetime.now(
                 ) - globalmotion_lastchange_date).total_seconds() / 60
-                if minutes_from_first_stop >= globalmotion_mins_to_alert_onstop and not globalmotion_stopalert_displayed:
-                    globalmotion_stopalert_displayed = True
-                    msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Machine Not Moving since " + \
-                        globalmotion_lastchange_date.strftime(
-                            "%Y/%m/%d %H:%M:%S")
-                    print(msg)
 
-                    if alert_globalmotion_warn:
-                        toast.show_toast("Alert - Machine "+targetcam, "Machine was stopped for "+str(
-                            globalmotion_mins_to_alert_onstop)+" mins", duration=3, icon_path="python_icon.ico")
+                if minutes_from_first_stop >= globalmotion_deepsleep_mins:
 
-                    if write_globalmotion_warn:
-                        file_globalmotion_warn.write(msg + "\n")
-                        file_globalmotion_warn.flush()
+                    # deep sleep
+                    if not globalmotion_deepsleep_alertdisplayed:
+                        globalmotion_deepsleep_alertdisplayed = True
+                        msg = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - Machine Not Moving since " + \
+                            globalmotion_lastchange_date.strftime(
+                                "%Y/%m/%d %H:%M:%S")
+                        print(msg)
+
+                        if alert_deepsleep_warn:
+                            toast.show_toast("Machine "+targetcam+" entered deep sleep", "Machine deep slept "+str(
+                                globalmotion_deepsleep_mins)+" mins ago", duration=3, icon_path="python_icon.ico")
+
+                        if write_deepsleep_warn:
+                            file_deepsleep_warn.write(msg + "\n")
+                            file_deepsleep_warn.flush()
 
     key = cv2.waitKey(1000)
     if key == 27:  # exit on ESC
@@ -222,4 +231,4 @@ while 1:
 cv2.destroyAllWindows()
 file_motion.close()
 file_globalmotion_change.close()
-file_globalmotion_warn.close()
+file_deepsleep_warn.close()
