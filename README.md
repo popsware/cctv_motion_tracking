@@ -18,7 +18,9 @@ This README would normally document whatever steps are necessary to get your app
     pip install matplotlib
     pip install numpy
     pip install plotly
-    pip install ToastNotifier
+    pip install win10toast
+    pip install win10toast-persist
+    pip install requests
 * Database configuration
 * How to run tests
 * Deployment instructions
