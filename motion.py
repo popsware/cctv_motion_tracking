@@ -25,7 +25,7 @@ ip_address = config_stream.get('stream', 'ip_address')
 username = config_stream.get('stream', 'username')
 password = config_stream.get('stream', 'password')
 # Streaming Channel & Detection Frame Selection
-targetcam = "nole4"
+targetcam = "nole11"
 show_motionplot = True
 show_selectionwindow = True
 show_motionframe = True

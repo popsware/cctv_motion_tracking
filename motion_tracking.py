@@ -60,6 +60,7 @@ try:
     iy = config_cam.getint(targetcam, 'iy')
     ix2 = config_cam.getint(targetcam, 'ix2')
     iy2 = config_cam.getint(targetcam, 'iy2')
+    machineid = config_cam.getint(targetcam, 'machineid')
     channel = config_cam.get(targetcam, 'channel')
     streamUrl = 'rtsp://' + username + ':' + password + '@' + \
         ip_address + ':554/Streaming/channels/' + channel
@@ -135,8 +136,7 @@ while 1:
 
     # write movement to file
     if write_motion:
-        file_motion.write(datetime.datetime.now().strftime(
-            "%Y/%m/%d %H:%M:%S") + " "+str(number) + "\n")
+        file_motion.write(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " "+str(number) + "\n")
         file_motion.flush()
 
     # Algorithm to define Moving vs Stop
@@ -157,12 +157,10 @@ while 1:
             # most of the flags are "moving", switching the status
             if not globalmotion_status == 1:
                 # changing status from not moving to moving
-                stopping_period = int((datetime.datetime.now(
-                ) - globalmotion_lastchange_date).total_seconds()/60)
+                stopping_period = int((datetime.datetime.now() - globalmotion_lastchange_date).total_seconds()/60)
 
                 title = "Machine "+targetcam
-                message = "Global State: Moving, after being stopped for " + \
-                    str(stopping_period)+" min"
+                message = "Global State: Moving, after being stopped for " + str(stopping_period)+" min"
                 message_withdate = datetime.datetime.now().strftime(
                     "%Y/%m/%d %H:%M:%S") + " - "+message
 
@@ -182,9 +180,8 @@ while 1:
                 if globalmotion_deepsleep_alertdisplayed:
                     globalmotion_deepsleep_alertdisplayed = False
 
-                    title = "Machine "+targetcam+" exiting deep sleep"
-                    message = "Machine exiting deep sleep, after being stopped for " + \
-                        str(stopping_period)+" min"
+                    title = "Woke up: "+targetcam
+                    message = "Idle time: " + str(stopping_period)+" min"
                     message_withdate = datetime.datetime.now().strftime(
                         "%Y/%m/%d %H:%M:%S") + " - "+message
 
@@ -192,10 +189,11 @@ while 1:
 
                     r = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
                         "value1": title, "value2": message, "value3": "none"})
+                    if not machineid == 0:
+                        r = requests.post('http://localhost/Dashboard.aspx/updateMachine_Status', params={"id": machineid, "status": 10})
 
                     if alert_deepsleep_warn:
-                        toast.show_toast(
-                            title, message, duration=None, icon_path="python_icon.ico", threaded=True)
+                        toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
 
                     if write_deepsleep_warn:
                         file_deepsleep_warn.write(message_withdate + "\n")
@@ -203,23 +201,18 @@ while 1:
 
         else:
 
-            running_period = int((datetime.datetime.now(
-            ) - globalmotion_lastchange_date).total_seconds()/60)
-
             # most of the flags are "not moving", switching the status
             if not globalmotion_status == 0:
                 # changing status from moving to not moving
 
                 title = "Machine "+targetcam
-                message = "Global State: Not Moving, after being running for " + \
-                    str(running_period)+" min"
+                message = "Global State: Not Moving"
                 message_withdate = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + message
 
                 print(message_withdate)
 
                 if alert_globalmotion_change:
-                    toast.show_toast(
-                        title, message, duration=3, icon_path="python_icon.ico", threaded=True)
+                    toast.show_toast(title, message, duration=3, icon_path="python_icon.ico", threaded=True)
 
                 if write_globalmotion_change:
                     file_globalmotion_change.write(message_withdate + "\n")
@@ -230,8 +223,7 @@ while 1:
 
             else:
                 # already on not moving status
-                minutes_from_first_stop = (datetime.datetime.now(
-                ) - globalmotion_lastchange_date).total_seconds() / 60
+                minutes_from_first_stop = (datetime.datetime.now() - globalmotion_lastchange_date).total_seconds() / 60
 
                 if minutes_from_first_stop >= globalmotion_deepsleep_mins:
 
@@ -239,18 +231,18 @@ while 1:
                     if not globalmotion_deepsleep_alertdisplayed:
                         globalmotion_deepsleep_alertdisplayed = True
 
-                        title = "Machine "+targetcam+" entering deep sleep"
-                        message = "Machine was running for ("+str(
-                            running_period)+"min before stopping from "+str(globalmotion_deepsleep_mins)+" mins ago"
+                        title = "Deep Sleep: "+targetcam
+                        message = "stopped " + str(globalmotion_deepsleep_mins)+" mins ago"
                         message_withdate = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + title
                         print(message_withdate)
 
-                        r = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
-                                          "value1": title, "value2": message, "value3": "none"})
+                        r = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
+                                          params={"value1": title, "value2": message, "value3": "none"})
+                        if not machineid == 0:
+                            r = requests.post('http://localhost/Dashboard.aspx/updateMachine_Status', params={"id": machineid, "status": 0})
 
                         if alert_deepsleep_warn:
-                            toast.show_toast(
-                                title, message, duration=None, icon_path="python_icon.ico", threaded=True)
+                            toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
 
                         if write_deepsleep_warn:
                             file_deepsleep_warn.write(message_withdate + "\n")
