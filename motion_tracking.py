@@ -187,10 +187,10 @@ while 1:
 
                     print(message_withdate)
 
-                    r = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
+                    response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
                         "value1": title, "value2": message, "value3": "none"})
                     if not machineid == 0:
-                        r = requests.post('http://localhost/Dashboard.aspx/updateMachine_Status', params={"id": machineid, "status": 10})
+                        response = requests.request("GET", "http://localhost:50011/api/machine/1/status/10", headers={'key': 'api_key'}, data={})
 
                     if alert_deepsleep_warn:
                         toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
@@ -236,10 +236,10 @@ while 1:
                         message_withdate = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + title
                         print(message_withdate)
 
-                        r = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
-                                          params={"value1": title, "value2": message, "value3": "none"})
+                        response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
+                                                 params={"value1": title, "value2": message, "value3": "none"})
                         if not machineid == 0:
-                            r = requests.post('http://localhost/Dashboard.aspx/updateMachine_Status', params={"id": machineid, "status": 0})
+                            response = requests.request("GET", "http://localhost:50011/api/machine/1/status/0", headers={'key': 'api_key'}, data={})
 
                         if alert_deepsleep_warn:
                             toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
