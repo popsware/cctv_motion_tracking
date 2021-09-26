@@ -4,30 +4,57 @@ import plotly.express as px
 import datetime
 import sys
 import numpy as np
-import tkinter as tk
+from tkinter import *
 from tkinter import simpledialog
 
 if len(sys.argv) > 1:
     targetcam = sys.argv[1]
 else:
-    ROOT = tk.Tk()
+    ROOT = Tk()
     ROOT.withdraw()
     # the input dialog
-    targetcam = simpledialog.askstring(
-        title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
+    targetcam = simpledialog.askstring(title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
 
+
+OPTIONS = [
+    "log_motion",
+    "log_globalmotion_change",
+    "log_deepsleep_warn"
+]  # etc
+
+master = Tk("Choose the log file")
+master.geometry("600x100")
+master.title("Choose the log file")
+
+variable = StringVar(master)
+variable.set(OPTIONS[0])  # default value
+
+w = OptionMenu(master, variable, *OPTIONS)
+w.pack()
+
+targetfile = ""
+
+
+def ok():
+    print("value is:" + variable.get())
+    targetfile = variable.get()
+
+
+button = Button(master, text="OK", command=ok)
+button.pack()
+
+mainloop()
 
 # Grabbing the data
 
 indecies = []
 dates = []
 numbers = []
-with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
+with open("logs_motion\\"+targetfile+"_"+targetcam+".txt") as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
         datestring = rowelements[0]+" "+rowelements[1]
-        m_date = datetime.datetime.strptime(
-            datestring, '%Y/%m/%d %H:%M:%S')
+        m_date = datetime.datetime.strptime(datestring, '%Y/%m/%d %H:%M:%S')
         m_float = float(rowelements[2])
         # print(index, m_date, m_float)
         indecies.append(index)
@@ -40,7 +67,7 @@ with open("logs_motion\log_motion_"+targetcam+".txt") as file_object:
 
 # Using the plotly library to display plot in a browser
 
-#fig = go.Figure(data=go.Scatter(x=dates, y=numbers))
+# fig = go.Figure(data=go.Scatter(x=dates, y=numbers))
 fig = go.Figure(data=px.area(x=dates, y=numbers))
 # Set title
 fig.update_layout(

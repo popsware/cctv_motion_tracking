@@ -20,7 +20,7 @@ if __name__ == '__main__':
     password = config_stream.get('stream', 'password')
     config_cam = ConfigParser()
     config_cam.read('config_cam.ini')
-    targetcam = "nole1"
+    targetcam = "outside2"
     channel = config_cam.get(targetcam, 'channel')
     streamUrl = 'rtsp://' + username + ':' + password + '@' + ip_address + ':554/Streaming/channels/'+channel
     streamer = ThreadedCamera(streamUrl)
@@ -58,6 +58,6 @@ if __name__ == '__main__':
 
             cv2.imshow("Context", frame)
 
-        key = cv2.waitKey(1000)
+        key = cv2.waitKey(1)
         if key == 27:  # exit on ESC
             break
