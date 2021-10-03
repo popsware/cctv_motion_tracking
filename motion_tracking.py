@@ -62,8 +62,7 @@ try:
     iy2 = config_cam.getint(targetcam, 'iy2')
     machineid = config_cam.getint(targetcam, 'machineid')
     channel = config_cam.get(targetcam, 'channel')
-    streamUrl = 'rtsp://' + username + ':' + password + '@' + \
-        ip_address + ':554/Streaming/channels/' + channel
+    streamUrl = 'rtsp://' + username + ':' + password + '@' + ip_address + ':554/Streaming/channels/' + channel
     print("streaming ", streamUrl)
     ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
     print("tracking ", targetcam)
@@ -187,6 +186,9 @@ while 1:
 
                     response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
                         "value1": title, "value2": message, "value3": "none"})
+                    file_deepsleep_warn.write(response + "\n")
+                    file_deepsleep_warn.flush()
+
                     if not machineid == 0:
                         response = requests.request(
                             "GET", "http://localhost:50011/api/machine/1/status/10", headers={'key': 'api_key'}, data={})
@@ -237,6 +239,9 @@ while 1:
 
                         response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
                                                  params={"value1": title, "value2": message, "value3": "none"})
+                        file_deepsleep_warn.write(response + "\n")
+                        file_deepsleep_warn.flush()
+
                         if not machineid == 0:
                             response = requests.request(
                                 "GET", "http://localhost:50011/api/machine/1/status/0", headers={'key': 'api_key'}, data={})
