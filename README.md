@@ -104,6 +104,15 @@ There are three types of logs currently in this project. all dumped into the `lo
     - logs moments a machine goes to deep sleep (status is stopped for 20 mins)
     - logs moments a machine comes out of deep sleep (moves after being in deep sleep)
 
+### Tasks ###
+
+* HTTP requests crashes the program on failed attempts (ex: no internet)
+
+### Next Steps ###
+
+* call HTTP requests async
+* Introduce some machine learning techniques to detect movement
+
 ### Who is invited to join? ###
 
 * Repo owner or admin
