@@ -40,7 +40,7 @@ globalmotion_flags_limit = 30
 globalmotion_status = -1  # 0 for stopped, 1 for moving
 globalmotion_msg = ""
 globalmotion_lastchange_date = datetime.datetime.now()
-globalmotion_deepsleep_mins = 20
+globalmotion_deepsleep_mins = 0
 globalmotion_deepsleep_alertdisplayed = False
 
 # Streaming Channel & Detection Frame Selection
@@ -166,7 +166,7 @@ while 1:
 
                 if alert_globalmotion_change:
                     toast.show_toast(
-                        "Machine "+targetcam, "Machine status changed to running (was stopped for "+str(stopping_period)+"mins)", duration=3, icon_path="python_icon.ico", threaded=True)
+                        "Machine "+targetcam, "Machine status changed to running (was stopped for "+str(stopping_period)+"mins)", icon_path="python_icon.ico", duration=3)
 
                 if write_globalmotion_change:
                     file_globalmotion_change.write(message_withdate + "\n")
@@ -186,15 +186,17 @@ while 1:
 
                     response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
                         "value1": title, "value2": message, "value3": "none"})
-                    file_deepsleep_warn.write(response + "\n")
-                    file_deepsleep_warn.flush()
+                    if not (response.status_code == 200):
+                        print(response.text)
+                        file_deepsleep_warn.write(str(response.text) + "\n")
+                        file_deepsleep_warn.flush()
 
                     if not machineid == 0:
                         response = requests.request(
-                            "GET", "http://localhost:50011/api/machine/1/status/10", headers={'key': 'api_key'}, data={})
+                            "GET", "http://localhost:50011/api/machine/"+str(machineid)+"/status/10", headers={'key': 'api_key'}, data={})
 
                     if alert_deepsleep_warn:
-                        toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
+                        toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
 
                     if write_deepsleep_warn:
                         file_deepsleep_warn.write(message_withdate + "\n")
@@ -213,7 +215,7 @@ while 1:
                 print(message_withdate)
 
                 if alert_globalmotion_change:
-                    toast.show_toast(title, message, duration=3, icon_path="python_icon.ico", threaded=True)
+                    toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
 
                 if write_globalmotion_change:
                     file_globalmotion_change.write(message_withdate + "\n")
@@ -239,15 +241,17 @@ while 1:
 
                         response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
                                                  params={"value1": title, "value2": message, "value3": "none"})
-                        file_deepsleep_warn.write(response + "\n")
-                        file_deepsleep_warn.flush()
+                        if not (response.status_code == 200):
+                            print(response.text)
+                            file_deepsleep_warn.write(str(response.text) + "\n")
+                            file_deepsleep_warn.flush()
 
                         if not machineid == 0:
                             response = requests.request(
-                                "GET", "http://localhost:50011/api/machine/1/status/0", headers={'key': 'api_key'}, data={})
+                                "GET", "http://localhost:50011/api/machine/"+str(machineid)+"/status/0", headers={'key': 'api_key'}, data={})
 
                         if alert_deepsleep_warn:
-                            toast.show_toast(title, message, duration=None, icon_path="python_icon.ico", threaded=True)
+                            toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
 
                         if write_deepsleep_warn:
                             file_deepsleep_warn.write(message_withdate + "\n")

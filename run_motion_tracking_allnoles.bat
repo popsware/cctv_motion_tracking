@@ -1,34 +1,18 @@
 
-::to start
-
-:: start python motion_tracking.py nole1
-:: start python motion_tracking.py nole2
-:: start python motion_tracking.py nole3
-:: start python motion_tracking.py nole4
-:: start python motion_tracking.py nole5
-:: start python motion_tracking.py nole6
-:: start python motion_tracking.py nole7
-:: start python motion_tracking.py nole8
-:: start python motion_tracking.py nole9
-:: start python motion_tracking.py nole10
-:: start python motion_tracking.py nole11
-:: start python motion_tracking.py dawara
-
-
 ::to start them minimized
 
-:: start /min python motion_tracking.py nole1
-:: start /min python motion_tracking.py nole2
-:: start /min python motion_tracking.py nole3
-:: start /min python motion_tracking.py nole4
-:: start /min python motion_tracking.py nole5
-:: start /min python motion_tracking.py nole6
-:: start /min python motion_tracking.py nole7
-:: start /min python motion_tracking.py nole8
-:: start /min python motion_tracking.py nole9
-:: start /min python motion_tracking.py nole10
-:: start /min python motion_tracking.py nole11
-:: start /min python motion_tracking.py dawara
+@REM start /min py motion_tracking.py nole1
+@REM start /min py motion_tracking.py nole2
+@REM start /min py motion_tracking.py nole3
+@REM start /min py motion_tracking.py nole4
+@REM start /min py motion_tracking.py nole5
+@REM start /min py motion_tracking.py nole6
+@REM start /min py motion_tracking.py nole7
+@REM start /min py motion_tracking.py nole8
+@REM start /min py motion_tracking.py nole9
+@REM start /min py motion_tracking.py nole10
+@REM start /min py motion_tracking.py nole11
+@REM start /min py motion_tracking.py dawara
 
 
 ::to start them hidden
