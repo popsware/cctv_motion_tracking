@@ -43,7 +43,7 @@ globalmotion_flags_limit = 30
 globalmotion_status = -1  # 0 for stopped, 1 for moving
 globalmotion_msg = ""
 globalmotion_lastchange_date = datetime.datetime.now()
-globalmotion_deepsleep_mins = 0
+globalmotion_deepsleep_mins = 20
 globalmotion_deepsleep_alertdisplayed = False
 
 # Streaming Channel & Detection Frame Selection
@@ -75,14 +75,13 @@ except:
 
 #Path("/logs_motion").mkdir(parents=True, exist_ok=True)
 os.makedirs("logs_motion", exist_ok=True)
-file_deepsleep_warn = open(
-    'logs_motion\log_deepsleep_warn_'+targetcam+'.txt', 'a')
-file_globalmotion_change = open(
-    'logs_motion\log_globalmotion_change_'+targetcam+'.txt', 'a')
+file_deepsleep_warn = open('logs_motion\log_deepsleep_warn_'+targetcam+'.txt', 'a')
+file_globalmotion_change = open('logs_motion\log_globalmotion_change_'+targetcam+'.txt', 'a')
 file_motion = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
 
 
 req = Requester()
+response = req.startMachine(machineid)
 
 
 # Starting the Logic
@@ -159,7 +158,12 @@ while 1:
 
         # check if moving flags are more than half
         if globalmotion_flags.count(1) > globalmotion_flags_limit / 2:
+            #
+            # Global Status: Moving_State
             # most of the flags are "moving", switching the status
+            #
+            #
+            #
             if not globalmotion_status == 1:
                 # changing status from stopped to moving
                 stopping_period = int((datetime.datetime.now() - globalmotion_lastchange_date).total_seconds()/60)
@@ -182,6 +186,11 @@ while 1:
                 globalmotion_status = 1
 
                 if globalmotion_deepsleep_alertdisplayed:
+
+                    #
+                    # Deep sleep: Waking Up
+                    #
+                    #
                     globalmotion_deepsleep_alertdisplayed = False
 
                     title = "Woke_Up: "+targetcam
@@ -202,9 +211,7 @@ while 1:
                         file_deepsleep_warn.write(str(response.text) + "\n")
                         file_deepsleep_warn.flush()
 
-                    if not machineid == 0:
-                        response = req.request("GET", "http://localhost:50011/api/machine/" +
-                                               str(machineid)+"/status/10", headers={'key': 'api_key'}, data={})
+                    response = req.startMachine(machineid)
 
                     if alert_deepsleep_warn:
                         toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
@@ -214,8 +221,12 @@ while 1:
                         file_deepsleep_warn.flush()
 
         else:
-
+            #
+            # Global Status: Stopped_State
             # most of the flags are "stopped", switching the status
+            #
+            #
+            #
             if not globalmotion_status == 0:
                 # changing status from moving to stopped
 
@@ -241,7 +252,10 @@ while 1:
 
                 if minutes_from_first_stop >= globalmotion_deepsleep_mins:
 
-                    # deep sleep
+                    #
+                    # Deep sleep: Entering Deep Sleep
+                    #
+                    #
                     if not globalmotion_deepsleep_alertdisplayed:
                         globalmotion_deepsleep_alertdisplayed = True
 
@@ -262,9 +276,7 @@ while 1:
                             file_deepsleep_warn.write(str(response.text) + "\n")
                             file_deepsleep_warn.flush()
 
-                        if not machineid == 0:
-                            response = req.request(
-                                "GET", "http://localhost:50011/api/machine/"+str(machineid)+"/status/0", headers={'key': 'api_key'}, data={})
+                        response = req.stopMachine(machineid)
 
                         if alert_deepsleep_warn:
                             toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
