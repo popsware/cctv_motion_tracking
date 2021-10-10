@@ -1,4 +1,5 @@
 # libraries
+
 from win10toast import ToastNotifier
 import datetime
 import sys
@@ -10,7 +11,9 @@ from configparser import ConfigParser
 import sys
 from pathlib import Path
 import os
-import requests
+#import requests
+
+from Th_SendRequests import Requester
 
 
 # Initializers
@@ -64,8 +67,8 @@ try:
     channel = config_cam.get(targetcam, 'channel')
     streamUrl = 'rtsp://' + username + ':' + password + '@' + ip_address + ':554/Streaming/channels/' + channel
     print("streaming ", streamUrl)
-    ctypes.windll.kernel32.SetConsoleTitleW("tracking "+targetcam)
-    print("tracking ", targetcam)
+    ctypes.windll.kernel32.SetConsoleTitleW("Tracking "+targetcam)
+    print("Tracking ", targetcam)
 except:
     print('could not read targetcam '+targetcam+'from configuration file')
     sys.exit(1)
@@ -77,6 +80,9 @@ file_deepsleep_warn = open(
 file_globalmotion_change = open(
     'logs_motion\log_globalmotion_change_'+targetcam+'.txt', 'a')
 file_motion = open('logs_motion\log_motion_'+targetcam+'.txt', 'a')
+
+
+req = Requester()
 
 
 # Starting the Logic
@@ -184,16 +190,21 @@ while 1:
 
                     print(message_withdate)
 
-                    response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
+                    response = req.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key, params={
                         "value1": title, "value2": message, "value3": "none"})
-                    if not (response.status_code == 200):
+
+                    if response is None:
+                        print("request failed to trigger IFTTT")
+                        file_deepsleep_warn.write("request failed to trigger IFTTT\n")
+                        file_deepsleep_warn.flush()
+                    elif not (response.status_code == 200):
                         print(response.text)
                         file_deepsleep_warn.write(str(response.text) + "\n")
                         file_deepsleep_warn.flush()
 
                     if not machineid == 0:
-                        response = requests.request(
-                            "GET", "http://localhost:50011/api/machine/"+str(machineid)+"/status/10", headers={'key': 'api_key'}, data={})
+                        response = req.request("GET", "http://localhost:50011/api/machine/" +
+                                               str(machineid)+"/status/10", headers={'key': 'api_key'}, data={})
 
                     if alert_deepsleep_warn:
                         toast.show_toast(title, message, icon_path="python_icon.ico", duration=3)
@@ -239,15 +250,20 @@ while 1:
                         message_withdate = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " - "+title + " - "+message
                         print(message_withdate)
 
-                        response = requests.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
-                                                 params={"value1": title, "value2": message, "value3": "none"})
-                        if not (response.status_code == 200):
+                        response = req.post('https://maker.ifttt.com/trigger/'+ifttt_event+'/with/key/'+ifttt_key,
+                                            params={"value1": title, "value2": message, "value3": "none"})
+
+                        if response is None:
+                            print("request failed to trigger IFTTT")
+                            file_deepsleep_warn.write("request failed to trigger IFTTT\n")
+                            file_deepsleep_warn.flush()
+                        elif not (response.status_code == 200):
                             print(response.text)
                             file_deepsleep_warn.write(str(response.text) + "\n")
                             file_deepsleep_warn.flush()
 
                         if not machineid == 0:
-                            response = requests.request(
+                            response = req.request(
                                 "GET", "http://localhost:50011/api/machine/"+str(machineid)+"/status/0", headers={'key': 'api_key'}, data={})
 
                         if alert_deepsleep_warn:

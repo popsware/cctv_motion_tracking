@@ -1,4 +1,4 @@
-from ReadCamera import ThreadedCamera
+from Th_ReadCamera import ThreadedCamera
 import cv2
 from win10toast import ToastNotifier
 from configparser import ConfigParser
