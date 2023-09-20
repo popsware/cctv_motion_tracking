@@ -99,7 +99,7 @@ as for the transformations, I used a gray scale filter before calculating the de
 
 ### Logging ###
 
-There are three types of logs currently in this project. all dumped into the `logs\motion_tracking` folder
+There are three types of logs currently in this project. all dumped into the `logs\motion_tracking` folder, grouped in targetcam folders
 
 1. Motion Detection in `log_motion_{machinename}.log`
     - records motion detected for each frame in a file
@@ -129,7 +129,7 @@ There are three types of logs currently in this project. all dumped into the `lo
     - run `pip install -r requirements.txt` to install all dependencies
 2. Run the Scripts
     1. Method 1: Manually
-        - run `py motion_tracking_v1.py [MACHINE_NAME] > logs\motion_tracking\[LOG_FILENAME]`
+        - run `py motion_tracking_v1.py [MACHINE_NAME] > \logs\motion_tracking\[TARGETCAM]\[LOG_FILENAME]`
         - or use `start_motion_tracking.bat` to run a script for each machine
     2. Method2: Using PM2
         - install `pm2` if not already

@@ -19,8 +19,8 @@ else:
 
 
 # Grabbing the data
-
-filename = "..\logs\motion_tracking\log_motion_" + targetcam + ".log"
+logdir = "..\logs\motion_tracking\\" + targetcam
+filename = logdir + "\log_motion_" + targetcam + ".log"
 indecies = []
 dates = []
 numbers = []

@@ -20,9 +20,9 @@ else:
 
 OPTIONS = ["log_motion", "log_globalstatechange", "log_deepsleep"]  # etc
 
-master = Tk("Choose the log file")
+master = Tk("Choose the logtype")
 master.geometry("600x100")
-master.title("Choose the log file")
+master.title("Choose the logtype")
 
 variable = StringVar(master)
 variable.set(OPTIONS[0])  # default value
@@ -30,12 +30,12 @@ variable.set(OPTIONS[0])  # default value
 w = OptionMenu(master, variable, *OPTIONS)
 w.pack()
 
-targetfile = ""
+target_logtype = ""
 
 
 def ok():
     print("value is:" + variable.get())
-    targetfile = variable.get()
+    target_logtype = variable.get()
 
 
 button = Button(master, text="OK", command=ok)
@@ -45,7 +45,9 @@ mainloop()
 
 # Grabbing the data
 
-filename = "..\logs\\motion_tracking\\" + targetfile + "_" + targetcam + ".log"
+logdir = "..\logs\motion_tracking\\" + targetcam
+logfile = target_logtype + "_" + targetcam + ".log"
+filename = logdir + "\\" + logfile
 indecies = []
 dates = []
 numbers = []
@@ -90,6 +92,5 @@ fig.update_layout(
     )
 )
 
-fig.write_html(
-    "logs\motion_tracking\chart_motion_" + targetcam + ".html", auto_open=True
-)
+logdir = "..\logs\motion_tracking\\" + targetcam
+fig.write_html(logdir + "\chart_motion_" + targetcam + ".html", auto_open=True)

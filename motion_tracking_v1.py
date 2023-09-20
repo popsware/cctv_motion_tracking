@@ -97,12 +97,13 @@ except:
 # ---------------------------------------------------------------------------
 
 # Path("\logs\motion_tracking").mkdir(parents=True, exist_ok=True)
-os.makedirs("logs\motion_tracking", exist_ok=True)
-file_deepsleep = open("logs\motion_tracking\log_deepsleep_" + targetcam + ".log", "a")
+logdir = "logs\motion_tracking\\" + targetcam
+os.makedirs(logdir, exist_ok=True)
+file_deepsleep = open(logdir + "\log_deepsleep_" + targetcam + ".log", "a")
 file_globalstatechange = open(
-    "logs\motion_tracking\log_globalstatechange_" + targetcam + ".log", "a"
+    logdir + "\log_globalstatechange_" + targetcam + ".log", "a"
 )
-file_motion = open("logs\motion_tracking\log_motion_" + targetcam + ".log", "a")
+file_motion = open(logdir + "\log_motion_" + targetcam + ".log", "a")
 
 try:
     factSystemRequester = Requester(machineid)
