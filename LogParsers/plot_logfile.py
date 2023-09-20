@@ -14,22 +14,21 @@ else:
     ROOT.withdraw()
     # the input dialog
     targetcam = simpledialog.askstring(
-        title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:")
-
-filename = "logs_motion\log_motion_"+targetcam
+        title="Which cam ?", prompt="Camera Name [nole1,nole2,...,dawara]:"
+    )
 
 
 # Grabbing the data
 
+filename = "..\logs\motion_tracking\log_motion_" + targetcam + ".log"
 indecies = []
 dates = []
 numbers = []
-with open(filename+".txt") as file_object:
+with open(filename) as file_object:
     for index, line in enumerate(file_object):
         rowelements = line.split()
-        datestring = rowelements[0]+" "+rowelements[1]
-        m_date = datetime.datetime.strptime(
-            datestring, '%Y/%m/%d %H:%M:%S')
+        datestring = rowelements[0] + " " + rowelements[1]
+        m_date = datetime.datetime.strptime(datestring, "%Y/%m/%d %H:%M:%S")
         m_float = float(rowelements[2])
         # print(index, m_date, m_float)
         indecies.append(index)
@@ -42,12 +41,14 @@ with open(filename+".txt") as file_object:
 # Using the matplotlib library to display plot in a window
 
 fig, ax = plt.subplots()
-ax.set(xlabel='Start: '+str(dates[0])+'\n  End:'+str(dates[len(dates)-1]),
-       ylabel="Motion Detected",
-       title='Motion of '+targetcam)
+ax.set(
+    xlabel="Start: " + str(dates[0]) + "\n  End:" + str(dates[len(dates) - 1]),
+    ylabel="Motion Detected",
+    title="Motion of " + targetcam,
+)
 ax.plot(dates, numbers)
 
-myFmt = mdates.DateFormatter('%d %H:%M')
+myFmt = mdates.DateFormatter("%d %H:%M")
 ax.xaxis.set_major_formatter(myFmt)
 
 # rotates and right aligns the x labels, and moves the bottom of the

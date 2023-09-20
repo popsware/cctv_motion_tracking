@@ -48,6 +48,6 @@ Thumbs.db
 *.mov
 *.wmv
 
-logs_motion/*
-config.ini
-config_stream.ini
+logs
+config/config.ini
+config/config_stream.ini
